@@ -2,6 +2,7 @@
 
 They are the "hidden endpoints" that Task 1 enumeration has to discover.
 """
+import os
 import sys
 from importlib.metadata import version
 
@@ -38,7 +39,8 @@ def debug_info():
         service="wanderways",
         debug=current_app.debug,
         secret_key=current_app.config["SECRET_KEY"],
-        database=current_app.config["DATABASE"],
+        # path shown relative to the app, so the leak doesn't print the host's home folder
+        database=os.path.join("instance", os.path.basename(current_app.config["DATABASE"])),
         python=sys.version.split()[0],
         flask=version("flask"),
         route_count=len(list(current_app.url_map.iter_rules())),
