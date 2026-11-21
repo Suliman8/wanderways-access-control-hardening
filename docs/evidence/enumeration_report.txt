@@ -1,0 +1,50 @@
+WanderWays - black-box endpoint enumeration (raw tool output)
+==============================================================================
+Target     : http://127.0.0.1:5000
+Run at     : 2026-11-21 06:42:02 PKT
+Requests   : 1216 in 3.6s - GET/HEAD/OPTIONS only, no data modified
+Identities : anonymous, customer (ayesha), agent (sara.agent), admin (admin)
+Wordlist   : 90 words
+robots.txt : disallows /admin, /api/internal/
+JS files   : /static/js/app.js
+
+Endpoints found: 25 (5 hidden = not referenced by the UI code)
+
+ #  METHODS            PATH                           FOUND BY                                 ANONYMOUS       CUSTOMER        AGENT           ADMIN          
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 1  GET                /                              crawl                                    302->/login     302->/dashboard 302->/dashboard 302->/dashboard
+ 2  GET                /admin                         crawl, robots                            302->/login     200             200             200            
+ 3  GET                /bookings/new                  crawl                                    302->/login     200             200             200            
+ 4  GET                /bookings/{id}                 js-code                                  302->/login     200             200             200            
+ 5  GET                /dashboard                     crawl, js-code                           302->/login     200             200             200            
+ 6  GET                /health *                      wordlist                                 200             200             200             200            
+ 7  GET, POST          /login                         crawl, js-code                           200             302->/dashboard 302->/dashboard 302->/dashboard
+ 8  GET                /logout                        crawl                                    -               -               -               -              
+ 9  GET                /profile                       crawl                                    302->/login     200             200             200            
+10  GET                /robots.txt                    well-known                               200             200             200             200            
+11  GET                /api/admin/bookings/export     crawl                                    403             403             403             200            
+12  GET                /api/admin/stats               js-code                                  401             403             403             200            
+13  GET                /api/admin/users               js-code                                  401             200             200             200            
+14  GET                /api/agents                    js-code                                  401             200             200             200            
+15  POST               /api/auth/login                js-code                                  -               -               -               -              
+16  POST               /api/auth/logout               js-code                                  -               -               -               -              
+17  GET                /api/auth/me *                 wordlist                                 401             200             200             200            
+18  GET, POST          /api/bookings                  js-code                                  401             200             200             200            
+19  DELETE, GET, PUT   /api/bookings/{id}             js-code, id-probe                        401             200             200             200            
+20  POST               /api/bookings/{id}/cancel      js-code                                  -               -               -               -              
+21  GET                /api/destinations              js-code                                  200             200             200             200            
+22  GET                /api/internal/debug *          wordlist                                 200             200             200             200            
+23  GET, PATCH         /api/users/{id}                js-code                                  401             200             200             200            
+24  GET                /api/v1/bookings *             js-comment                               200             200             200             200            
+25  GET                /api/v1/bookings/{id} *        id-probe                                 200             200             200             200            
+
+* = hidden endpoint (found only via robots.txt, JS comments, wordlist or ID probing)
+Access cells are the GET status per identity (302->/x = redirect). '-' = GET not allowed / not sent.
+
+Static assets: /static/css/style.css, /static/js/app.js
+
+Coverage check against `flask routes` (white-box ground truth)
+  paths found : 25/25 (100%)
+  missed      : none
+  not in source (false positives): none
+  method gaps : none

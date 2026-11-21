@@ -1,0 +1,33 @@
+ffuf 2.1.0-dev - wordlist recon/wordlist.txt - target http://127.0.0.1:5000 (local lab)
+Match codes: 200,204,301,302,307,401,403,405 (anything except 404 means the path exists)
+Run at: 2026-11-21 06:42:24 PKT
+
+### ffuf -u http://127.0.0.1:5000/FUZZ -w recon/wordlist.txt -ic -mc 200,204,301,302,307,401,403,405
+admin                   [Status: 302, Size: 223, Words: 18, Lines: 6, Duration: 9ms]
+dashboard               [Status: 302, Size: 231, Words: 18, Lines: 6, Duration: 18ms]
+health                  [Status: 200, Size: 62, Words: 1, Lines: 2, Duration: 22ms]
+login                   [Status: 200, Size: 1207, Words: 130, Lines: 33, Duration: 17ms]
+profile                 [Status: 302, Size: 227, Words: 18, Lines: 6, Duration: 13ms]
+robots.txt              [Status: 200, Size: 56, Words: 4, Lines: 4, Duration: 15ms]
+
+### ffuf -u http://127.0.0.1:5000/api/FUZZ -w recon/wordlist.txt -ic -mc 200,204,301,302,307,401,403,405
+agents                  [Status: 401, Size: 36, Words: 2, Lines: 2, Duration: 5ms]
+bookings                [Status: 401, Size: 36, Words: 2, Lines: 2, Duration: 14ms]
+destinations            [Status: 200, Size: 965, Words: 41, Lines: 2, Duration: 11ms]
+
+### ffuf -u http://127.0.0.1:5000/api/auth/FUZZ -w recon/wordlist.txt -ic -mc 200,204,301,302,307,401,403,405
+login                   [Status: 405, Size: 31, Words: 3, Lines: 2, Duration: 20ms]
+me                      [Status: 401, Size: 36, Words: 2, Lines: 2, Duration: 21ms]
+
+### ffuf -u http://127.0.0.1:5000/api/admin/FUZZ -w recon/wordlist.txt -ic -mc 200,204,301,302,307,401,403,405
+stats                   [Status: 401, Size: 36, Words: 2, Lines: 2, Duration: 14ms]
+users                   [Status: 401, Size: 36, Words: 2, Lines: 2, Duration: 11ms]
+
+### ffuf -u http://127.0.0.1:5000/api/v1/FUZZ -w recon/wordlist.txt -ic -mc 200,204,301,302,307,401,403,405
+bookings                [Status: 200, Size: 8174, Words: 150, Lines: 2, Duration: 80ms]
+
+### ffuf -u http://127.0.0.1:5000/api/internal/FUZZ -w recon/wordlist.txt -ic -mc 200,204,301,302,307,401,403,405
+debug                   [Status: 200, Size: 226, Words: 1, Lines: 2, Duration: 43ms]
+
+### ffuf -u http://127.0.0.1:5000/api/bookings/1/FUZZ -w recon/wordlist.txt -ic -mc 200,204,301,302,307,401,403,405
+cancel                  [Status: 405, Size: 31, Words: 3, Lines: 2, Duration: 14ms]

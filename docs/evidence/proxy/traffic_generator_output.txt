@@ -1,0 +1,81 @@
+Target: http://127.0.0.1:5000   Proxy: http://127.0.0.1:8081
+
+  [anonymous] GET    /                                  -> 302
+  [anonymous] GET    /login                             -> 200
+  [anonymous] GET    /static/css/style.css              -> 200
+  [anonymous] GET    /static/js/app.js                  -> 200
+  [anonymous] GET    /dashboard                         -> 302
+  [anonymous] POST   /api/auth/login                    -> 401
+  [customer ] GET    /login                             -> 200
+  [customer ] GET    /static/css/style.css              -> 200
+  [customer ] GET    /static/js/app.js                  -> 200
+  [customer ] POST   /api/auth/login                    -> 200
+  [customer ] GET    /dashboard                         -> 200
+  [customer ] GET    /static/css/style.css              -> 200
+  [customer ] GET    /static/js/app.js                  -> 200
+  [customer ] GET    /api/bookings                      -> 200
+  [customer ] GET    /bookings/1                        -> 200
+  [customer ] GET    /static/css/style.css              -> 200
+  [customer ] GET    /static/js/app.js                  -> 200
+  [customer ] GET    /api/bookings/1                    -> 200
+  [customer ] GET    /profile                           -> 200
+  [customer ] GET    /static/css/style.css              -> 200
+  [customer ] GET    /static/js/app.js                  -> 200
+  [customer ] GET    /api/users/4                       -> 200
+  [customer ] GET    /bookings/new                      -> 200
+  [customer ] GET    /static/css/style.css              -> 200
+  [customer ] GET    /static/js/app.js                  -> 200
+  [customer ] GET    /api/destinations                  -> 200
+  [customer ] GET    /api/agents                        -> 200
+  [customer ] POST   /api/bookings                      -> 201
+  [customer ] GET    /bookings/21                       -> 200
+  [customer ] GET    /static/css/style.css              -> 200
+  [customer ] GET    /static/js/app.js                  -> 200
+  [customer ] GET    /api/bookings/21                   -> 200
+  [customer ] PUT    /api/bookings/21                   -> 200
+  [customer ] POST   /api/bookings/21/cancel            -> 200
+  [customer ] PATCH  /api/users/4                       -> 200
+  [customer ] POST   /api/auth/logout                   -> 200
+  [agent    ] GET    /login                             -> 200
+  [agent    ] GET    /static/css/style.css              -> 200
+  [agent    ] GET    /static/js/app.js                  -> 200
+  [agent    ] POST   /api/auth/login                    -> 200
+  [agent    ] GET    /dashboard                         -> 200
+  [agent    ] GET    /static/css/style.css              -> 200
+  [agent    ] GET    /static/js/app.js                  -> 200
+  [agent    ] GET    /api/bookings                      -> 200
+  [agent    ] GET    /bookings/5                        -> 200
+  [agent    ] GET    /static/css/style.css              -> 200
+  [agent    ] GET    /static/js/app.js                  -> 200
+  [agent    ] GET    /api/bookings/5                    -> 200
+  [agent    ] GET    /profile                           -> 200
+  [agent    ] GET    /static/css/style.css              -> 200
+  [agent    ] GET    /static/js/app.js                  -> 200
+  [agent    ] GET    /api/users/2                       -> 200
+  [agent    ] POST   /api/auth/logout                   -> 200
+  [admin    ] GET    /login                             -> 200
+  [admin    ] GET    /static/css/style.css              -> 200
+  [admin    ] GET    /static/js/app.js                  -> 200
+  [admin    ] POST   /api/auth/login                    -> 200
+  [admin    ] GET    /dashboard                         -> 200
+  [admin    ] GET    /static/css/style.css              -> 200
+  [admin    ] GET    /static/js/app.js                  -> 200
+  [admin    ] GET    /api/bookings                      -> 200
+  [admin    ] GET    /bookings/1                        -> 200
+  [admin    ] GET    /static/css/style.css              -> 200
+  [admin    ] GET    /static/js/app.js                  -> 200
+  [admin    ] GET    /api/bookings/1                    -> 200
+  [admin    ] GET    /profile                           -> 200
+  [admin    ] GET    /static/css/style.css              -> 200
+  [admin    ] GET    /static/js/app.js                  -> 200
+  [admin    ] GET    /api/users/1                       -> 200
+  [admin    ] GET    /admin                             -> 200
+  [admin    ] GET    /static/css/style.css              -> 200
+  [admin    ] GET    /static/js/app.js                  -> 200
+  [admin    ] GET    /api/admin/stats                   -> 200
+  [admin    ] GET    /api/admin/users                   -> 200
+  [admin    ] GET    /api/admin/bookings/export         -> 200
+  [admin    ] POST   /api/auth/logout                   -> 200
+
+Done: 76 requests sent.
+A test booking was added. Reset with:  flask --app wanderways init-db

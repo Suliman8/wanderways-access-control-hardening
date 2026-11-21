@@ -1,0 +1,15 @@
+Anonymous write-method checks (no session cookie) - 2026-11-21 06:46:46 PKT
+Non-existent id 9999 is used, so even an unprotected route could not change real data.
+401 = login required before the route runs. Anything else means the route ran anonymously.
+
+  POST    /api/bookings                -> 401  {"error":"authentication required"}
+  PUT     /api/bookings/9999           -> 401  {"error":"authentication required"}
+  DELETE  /api/bookings/9999           -> 401  {"error":"authentication required"}
+  POST    /api/bookings/9999/cancel    -> 401  {"error":"authentication required"}
+  PATCH   /api/users/9999              -> 401  {"error":"authentication required"}
+  POST    /api/auth/logout             -> 200  {"message":"logged out"}
+  POST    /login                       -> 401  (HTML login page with 'Invalid username or password.')
+
+Result: every booking/user write route requires login (401).
+POST /api/auth/logout and POST /login are public by design (logout just clears the session;
+the failed form login returns 401 'Invalid username or password').

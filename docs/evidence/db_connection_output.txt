@@ -1,0 +1,46 @@
+================================================================
+ WanderWays - database connection check
+================================================================
+Run at        : 2026-11-21 06:44:21 PKT
+Python        : 3.13.12 (Linux)
+SQLite library: 3.46.1
+Database file : /home/kali/Desktop/Eztech/wanderways-access-control-hardening/instance/wanderways.db
+File size     : 32,768 bytes
+Integrity     : ok
+
+[OK] Connected to SQLite (read-only)
+
+Tables
+  bookings    20 rows   columns: id, booking_ref, customer_id, agent_id, destination, hotel, depart_date, return_date, travellers, total_price, status, passport_no, payment_last4, notes, created_at
+  users        7 rows   columns: id, username, password_hash, full_name, email, phone, role, created_at
+
+Users by role
+  admin     1  (admin)
+  agent     2  (sara.agent, bilal.agent)
+  customer  4  (ayesha, omar, hina, usman)
+
+Bookings by status
+  confirmed  12
+  pending    5
+  cancelled  3
+
+Bookings per customer
+  ayesha    5
+  omar      5
+  hina      5
+  usman     5
+
+Sample bookings (first 5 of the table)
+  id  ref         customer   destination               depart      status     total
+   1  WW-26-1001  ayesha     Istanbul, Turkiye         2027-01-10  confirmed  $2,080.00
+   2  WW-26-1002  omar       Istanbul, Turkiye         2027-01-27  cancelled  $3,240.00
+   3  WW-26-1003  hina       Tbilisi, Georgia          2027-02-20  confirmed  $2,050.00
+   4  WW-26-1004  usman      Skardu, Pakistan          2027-01-16  confirmed  $1,820.00
+   5  WW-26-1005  ayesha     Hunza Valley, Pakistan    2027-03-19  cancelled  $1,830.00
+
+Baseline checks
+  [PASS] database integrity is 'ok'
+  [PASS] roles present: admin, agent, customer
+  [PASS] 20 sample bookings (found 20)
+
+RESULT: PASS - database connection and seed data verified

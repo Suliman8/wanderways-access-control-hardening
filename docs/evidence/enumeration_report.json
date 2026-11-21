@@ -1,0 +1,390 @@
+{
+  "target": "http://127.0.0.1:5000",
+  "generated_at": "2026-11-21T06:42:02+05:00",
+  "requests_sent": 1216,
+  "methods_used": [
+    "GET",
+    "HEAD",
+    "OPTIONS"
+  ],
+  "robots_disallow": [
+    "/admin",
+    "/api/internal/"
+  ],
+  "javascript_files": [
+    "/static/js/app.js"
+  ],
+  "endpoints": [
+    {
+      "path": "/",
+      "methods": [
+        "GET"
+      ],
+      "kind": "page",
+      "found_by": "crawl",
+      "hidden": false,
+      "access": {
+        "anonymous": "302->/login",
+        "customer": "302->/dashboard",
+        "agent": "302->/dashboard",
+        "admin": "302->/dashboard"
+      }
+    },
+    {
+      "path": "/admin",
+      "methods": [
+        "GET"
+      ],
+      "kind": "page",
+      "found_by": "crawl, robots",
+      "hidden": false,
+      "access": {
+        "anonymous": "302->/login",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/bookings/new",
+      "methods": [
+        "GET"
+      ],
+      "kind": "page",
+      "found_by": "crawl",
+      "hidden": false,
+      "access": {
+        "anonymous": "302->/login",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/bookings/{id}",
+      "methods": [
+        "GET"
+      ],
+      "kind": "page",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {
+        "anonymous": "302->/login",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/dashboard",
+      "methods": [
+        "GET"
+      ],
+      "kind": "page",
+      "found_by": "crawl, js-code",
+      "hidden": false,
+      "access": {
+        "anonymous": "302->/login",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/health",
+      "methods": [
+        "GET"
+      ],
+      "kind": "page",
+      "found_by": "wordlist",
+      "hidden": true,
+      "access": {
+        "anonymous": "200",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/login",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "kind": "page",
+      "found_by": "crawl, js-code",
+      "hidden": false,
+      "access": {
+        "anonymous": "200",
+        "customer": "302->/dashboard",
+        "agent": "302->/dashboard",
+        "admin": "302->/dashboard"
+      }
+    },
+    {
+      "path": "/logout",
+      "methods": [
+        "GET"
+      ],
+      "kind": "page",
+      "found_by": "crawl",
+      "hidden": false,
+      "access": {}
+    },
+    {
+      "path": "/profile",
+      "methods": [
+        "GET"
+      ],
+      "kind": "page",
+      "found_by": "crawl",
+      "hidden": false,
+      "access": {
+        "anonymous": "302->/login",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/robots.txt",
+      "methods": [
+        "GET"
+      ],
+      "kind": "page",
+      "found_by": "well-known",
+      "hidden": false,
+      "access": {
+        "anonymous": "200",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/admin/bookings/export",
+      "methods": [
+        "GET"
+      ],
+      "kind": "api",
+      "found_by": "crawl",
+      "hidden": false,
+      "access": {
+        "anonymous": "403",
+        "customer": "403",
+        "agent": "403",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/admin/stats",
+      "methods": [
+        "GET"
+      ],
+      "kind": "api",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {
+        "anonymous": "401",
+        "customer": "403",
+        "agent": "403",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/admin/users",
+      "methods": [
+        "GET"
+      ],
+      "kind": "api",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {
+        "anonymous": "401",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/agents",
+      "methods": [
+        "GET"
+      ],
+      "kind": "api",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {
+        "anonymous": "401",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/auth/login",
+      "methods": [
+        "POST"
+      ],
+      "kind": "api",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {}
+    },
+    {
+      "path": "/api/auth/logout",
+      "methods": [
+        "POST"
+      ],
+      "kind": "api",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {}
+    },
+    {
+      "path": "/api/auth/me",
+      "methods": [
+        "GET"
+      ],
+      "kind": "api",
+      "found_by": "wordlist",
+      "hidden": true,
+      "access": {
+        "anonymous": "401",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/bookings",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "kind": "api",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {
+        "anonymous": "401",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/bookings/{id}",
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "kind": "api",
+      "found_by": "js-code, id-probe",
+      "hidden": false,
+      "access": {
+        "anonymous": "401",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/bookings/{id}/cancel",
+      "methods": [
+        "POST"
+      ],
+      "kind": "api",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {}
+    },
+    {
+      "path": "/api/destinations",
+      "methods": [
+        "GET"
+      ],
+      "kind": "api",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {
+        "anonymous": "200",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/internal/debug",
+      "methods": [
+        "GET"
+      ],
+      "kind": "api",
+      "found_by": "wordlist",
+      "hidden": true,
+      "access": {
+        "anonymous": "200",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/users/{id}",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "kind": "api",
+      "found_by": "js-code",
+      "hidden": false,
+      "access": {
+        "anonymous": "401",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/v1/bookings",
+      "methods": [
+        "GET"
+      ],
+      "kind": "api",
+      "found_by": "js-comment",
+      "hidden": true,
+      "access": {
+        "anonymous": "200",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    },
+    {
+      "path": "/api/v1/bookings/{id}",
+      "methods": [
+        "GET"
+      ],
+      "kind": "api",
+      "found_by": "id-probe",
+      "hidden": true,
+      "access": {
+        "anonymous": "200",
+        "customer": "200",
+        "agent": "200",
+        "admin": "200"
+      }
+    }
+  ],
+  "static_assets": [
+    "/static/css/style.css",
+    "/static/js/app.js"
+  ],
+  "coverage": {
+    "routes_in_source": 25,
+    "found": 25,
+    "missing": [],
+    "extra": [],
+    "method_gaps": {}
+  }
+}

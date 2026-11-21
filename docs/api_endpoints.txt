@@ -1,0 +1,191 @@
+==============================================================================================
+ WanderWays Travel Portal - API ENDPOINT MAP
+ Ezitech project "Access Control Hardening" - Task 1: Lab Setup and Baseline Enumeration
+==============================================================================================
+ Target        : http://127.0.0.1:5000  (local lab: Flask 3.1.3 + SQLite, own machine only)
+ Tester        : Suliman - Cyber Security intern, Ezitech
+ Date          : 21 Nov 2026
+ Test accounts : anonymous | ayesha (customer) | sara.agent (agent) | admin (admin)
+
+ RESULT
+   25 endpoints (paths), 30 method + path combinations, plus static assets under /static/
+   18 paths were seen in normal proxy traffic, 7 were not. 5 of those 7 are HIDDEN [H]: no link
+   or code in the UI points to them. The other 2 are /logout (linked, but the UI logs out
+   through the API) and /robots.txt (standard file).
+   DELETE /api/bookings/{id} was never sent by the UI either; only OPTIONS revealed it.
+   Black-box result checked against `flask routes` (white-box): 25/25 paths and every
+   HTTP method found, 0 false positives.
+----------------------------------------------------------------------------------------------
+
+1. HOW THE ENDPOINTS WERE FOUND
+----------------------------------------------------------------------------------------------
+ Step  Technique            What was done                                              Result
+ ----  -------------------  ---------------------------------------------------------  ---------------
+  1    Intercepting proxy   Proxy listener on 127.0.0.1:8081 (Burp Suite Community or   18 paths
+                            mitmproxy). Logged in as each role and used every page.
+                            scripts/generate_traffic.py replays the same journeys.
+  2    robots.txt           "Disallow: /admin" and "Disallow: /api/internal/"          2 leads
+  3    JavaScript review    /static/js/app.js: fetch() calls, and a developer comment  /api/v1/bookings
+                            "old mobile app still reads /api/v1/bookings"
+  4    Wordlist fuzzing     ffuf + recon/enumerate_endpoints.py, 90 words under every  /health,
+                            folder found so far (/, /api, /api/auth, /api/internal...)  /api/auth/me,
+                                                                                       /api/internal/debug
+  5    ID probing           request <collection>/1 on every collection                /api/v1/bookings/{id}
+  6    Method discovery     OPTIONS on every path -> "Allow" response header           all 30 methods
+                            (found DELETE on /api/bookings/{id} - the UI never uses it)
+  7    Verification         compared with `flask routes` output                        100% coverage
+
+ Steps 2-6 sent only GET, HEAD and OPTIONS requests, so no data was changed.
+ Step 1 also sent the normal POST/PUT/PATCH a user makes; the database was reset afterwards.
+
+
+2. ENDPOINT STRUCTURE
+----------------------------------------------------------------------------------------------
+ {id} = whole number (sequential: 1, 2, 3 ...)        [H] = hidden, not used by the UI
+
+ http://127.0.0.1:5000
+ |-- /                                  GET               redirect to /login or /dashboard
+ |-- /login                             GET, POST         sign-in page / HTML form login
+ |-- /logout                            GET               sign out (fallback link)
+ |-- /dashboard                         GET               bookings page
+ |-- /profile                           GET               my profile page
+ |-- /admin                             GET               admin panel page    (in robots.txt)
+ |-- /bookings
+ |   |-- /new                           GET               new booking form
+ |   `-- /{id}                          GET               booking detail page
+ |-- /health                            GET               service + DB status          [H]
+ |-- /robots.txt                        GET               crawler rules
+ |-- /static/css/style.css              GET               stylesheet
+ |-- /static/js/app.js                  GET               front-end code (calls the API)
+ `-- /api
+     |-- /auth
+     |   |-- /login                     POST              JSON login, sets session cookie
+     |   |-- /logout                    POST              JSON logout
+     |   `-- /me                        GET               current user                 [H]
+     |-- /destinations                  GET               destinations and prices
+     |-- /agents                        GET               list of travel agents
+     |-- /bookings                      GET, POST         list bookings / create booking
+     |   `-- /{id}                      GET, PUT, DELETE  read / change / delete booking
+     |       `-- /cancel                POST              cancel booking
+     |-- /users
+     |   `-- /{id}                      GET, PATCH        read / change user profile
+     |-- /admin
+     |   |-- /users                     GET               all user accounts
+     |   |-- /stats                     GET               booking statistics
+     |   `-- /bookings
+     |       `-- /export                GET               CSV export of all bookings
+     |-- /v1                                              legacy API version           [H]
+     |   `-- /bookings                  GET               all bookings                 [H]
+     |       `-- /{id}                  GET               one booking                  [H]
+     `-- /internal                                        (in robots.txt)
+         `-- /debug                     GET               runtime / config details     [H]
+
+
+3. ENDPOINT LIST - every method + path
+----------------------------------------------------------------------------------------------
+ Auth (observed) = what the server asked for when called without logging in:
+   none = answered anonymously, login = 401 or redirect to /login, cookie = see note 7 in section 5
+ Intended = who should be allowed, from the project brief (customer: own data, agent: assigned
+   bookings, admin: everything)
+ Proxy = seen in normal traffic through the proxy (yes/no)
+
+  #  METHOD  PATH                         AUTH    INTENDED                     PROXY  FOUND BY
+ --  ------  ---------------------------  ------  ---------------------------  -----  ------------------------
+  1  GET     /                            none    everyone                     yes    proxy, crawl
+  2  GET     /login                       none    everyone                     yes    proxy, crawl, JS
+  3  POST    /login                       none    everyone                     no     crawl (HTML form), OPTIONS
+  4  GET     /logout                      none    logged-in users              no     crawl (nav link)
+  5  GET     /dashboard                   login   logged-in users              yes    proxy, crawl, JS
+  6  GET     /profile                     login   logged-in users              yes    proxy, crawl
+  7  GET     /admin                       login   admin only                   yes    proxy, crawl, robots.txt
+  8  GET     /bookings/new                login   customer                     yes    proxy, crawl
+  9  GET     /bookings/{id}               login   owner, assigned agent, admin yes    proxy, JS
+ 10  GET     /health                      none    operations / monitoring      no     wordlist           [H]
+ 11  GET     /robots.txt                  none    everyone                     no     well-known file
+ 12  POST    /api/auth/login              none    everyone                     yes    proxy, JS
+ 13  POST    /api/auth/logout             none    logged-in users              yes    proxy, JS
+ 14  GET     /api/auth/me                 login   logged-in users              no     wordlist           [H]
+ 15  GET     /api/destinations            none    everyone                     yes    proxy, JS
+ 16  GET     /api/agents                  login   logged-in users              yes    proxy, JS
+ 17  GET     /api/bookings                login   own bookings (admin: all)    yes    proxy, JS
+ 18  POST    /api/bookings                login   customer (for themself)      yes    proxy, JS
+ 19  GET     /api/bookings/{id}           login   owner, assigned agent, admin yes    proxy, JS, ID probe
+ 20  PUT     /api/bookings/{id}           login   owner, assigned agent, admin yes    proxy, JS
+ 21  DELETE  /api/bookings/{id}           login   admin only                   no     OPTIONS (Allow header)
+ 22  POST    /api/bookings/{id}/cancel    login   owner, admin                 yes    proxy, JS, ffuf
+ 23  GET     /api/users/{id}              login   self, admin                  yes    proxy, JS
+ 24  PATCH   /api/users/{id}              login   self (not role), admin       yes    proxy, JS
+ 25  GET     /api/admin/users             login   admin only                   yes    proxy, JS
+ 26  GET     /api/admin/stats             login   admin only                   yes    proxy, JS
+ 27  GET     /api/admin/bookings/export   cookie  admin only                   yes    proxy, crawl (admin page)
+ 28  GET     /api/v1/bookings             none    nobody (retired API)         no     JS comment, ffuf   [H]
+ 29  GET     /api/v1/bookings/{id}        none    nobody (retired API)         no     ID probe           [H]
+ 30  GET     /api/internal/debug          none    nobody (internal only)       no     robots.txt + ffuf  [H]
+
+ Static assets: GET /static/css/style.css, GET /static/js/app.js  (served by Flask /static/<path>)
+ Every route also answers HEAD and OPTIONS automatically (Flask default); they are left out above.
+
+
+4. BASELINE ACCESS MATRIX - HTTP status for a GET as each identity ({id} = 1)
+----------------------------------------------------------------------------------------------
+ PATH                         ANONYMOUS     CUSTOMER        AGENT           ADMIN
+ ---------------------------  ------------  --------------  --------------  --------------
+ /                            302 /login    302 /dashboard  302 /dashboard  302 /dashboard
+ /admin                       302 /login    200             200             200
+ /bookings/new                302 /login    200             200             200
+ /bookings/1                  302 /login    200             200             200
+ /dashboard                   302 /login    200             200             200
+ /health                      200           200             200             200
+ /login                       200           302 /dashboard  302 /dashboard  302 /dashboard
+ /profile                     302 /login    200             200             200
+ /robots.txt                  200           200             200             200
+ /api/admin/bookings/export   403           403             403             200
+ /api/admin/stats             401           403             403             200
+ /api/admin/users             401           200             200             200
+ /api/agents                  401           200             200             200
+ /api/auth/me                 401           200             200             200
+ /api/bookings                401           200             200             200
+ /api/bookings/1              401           200             200             200
+ /api/destinations            200           200             200             200
+ /api/internal/debug          200           200             200             200
+ /api/users/1                 401           200             200             200
+ /api/v1/bookings             200           200             200             200
+ /api/v1/bookings/1           200           200             200             200
+ (POST-only routes and /logout were not sent a GET.)  Raw output: docs/evidence/enumeration_report.txt
+
+
+5. FIRST OBSERVATIONS - leads for Task 2 (not exploited yet)
+----------------------------------------------------------------------------------------------
+ 1. /api/v1/bookings and /api/v1/bookings/{id} answer 200 with NO login and return every
+    booking, including passport numbers and card digits.
+ 2. /api/internal/debug answers 200 with NO login. The response contains a "secret_key" field
+    (the Flask session signing key).
+ 3. /api/admin/users answers 200 to the customer and the agent. /api/admin/stats correctly
+    answers 403 to them, so the admin role check is applied to some routes but not others.
+ 4. /admin (admin panel page) loads for the customer and the agent. Only the menu link is
+    hidden from them.
+ 5. IDs are sequential. sara.agent got 200 for /api/bookings/1, which is assigned to
+    bilal.agent, and the customer got 200 for /api/users/1, the admin's account. Likely IDOR.
+ 6. The server allows DELETE on /api/bookings/{id}, but the UI has no delete button. Who is
+    allowed to delete must be tested.
+ 7. /api/admin/bookings/export answers 403 (not 401) even without a session. Login also sets
+    a readable, unsigned cookie "ww_role=<role>" next to the session cookie. The export
+    route may be trusting that cookie.
+ 8. The UI only sends dates, travellers and notes in PUT /api/bookings/{id}, and only
+    name, email and phone in PATCH /api/users/{id}. Whether extra fields (status,
+    total_price, customer_id, role) are also accepted must be tested.
+
+
+6. EVIDENCE IN THIS REPOSITORY
+----------------------------------------------------------------------------------------------
+ docs/evidence/proxy/proxy_sitemap.txt        site map built from the proxy capture
+ docs/evidence/proxy/proxy_history.txt        every request seen by the proxy (76)
+ docs/evidence/proxy/wanderways_capture.har   full capture (open in a browser's DevTools)
+ docs/evidence/proxy/wanderways_capture.mitm  same capture for mitmproxy (mitmweb -r <file>)
+ docs/evidence/enumeration_report.txt / .json raw output of recon/enumerate_endpoints.py
+ docs/evidence/ffuf_results.txt               ffuf runs per folder
+ docs/evidence/anonymous_write_checks.txt     write methods sent without login (bookings/users -> 401)
+ docs/evidence/flask_routes.txt               `flask routes` (white-box ground truth)
+ docs/evidence/db_connection_output.txt       database connection script output
+ docs/evidence/screenshots/                   the app running on localhost:5000
+==============================================================================================
