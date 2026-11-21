@@ -1,10 +1,10 @@
 ================================================================
  WanderWays - database connection check
 ================================================================
-Run at        : 2026-11-21 06:44:21 PKT
+Run at        : 2026-11-21 07:46:43 PKT
 Python        : 3.13.12 (Linux)
 SQLite library: 3.46.1
-Database file : /home/kali/Desktop/Eztech/wanderways-access-control-hardening/instance/wanderways.db
+Database file : instance/wanderways.db
 File size     : 32,768 bytes
 Integrity     : ok
 

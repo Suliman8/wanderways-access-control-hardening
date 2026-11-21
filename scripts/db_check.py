@@ -19,14 +19,15 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-DEFAULT_DB = Path(__file__).resolve().parent.parent / "instance" / "wanderways.db"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_DB = REPO_ROOT / "instance" / "wanderways.db"
 EXPECTED_ROLES = {"admin", "agent", "customer"}
 EXPECTED_BOOKINGS = 20
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--db", type=Path, default=DEFAULT_DB, help=f"database file (default: {DEFAULT_DB})")
+    parser.add_argument("--db", type=Path, default=DEFAULT_DB, help="database file (default: instance/wanderways.db)")
     parser.add_argument("--output", type=Path, help="also save the report to this file")
     args = parser.parse_args()
 
@@ -43,7 +44,7 @@ def main():
     out(f"Run at        : {datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')}")
     out(f"Python        : {platform.python_version()} ({platform.system()})")
     out(f"SQLite library: {sqlite3.sqlite_version}")
-    out(f"Database file : {db_path}")
+    out(f"Database file : {shown_path(db_path)}")
 
     if not db_path.is_file():
         out("\n[FAIL] Database file not found. Run:  flask --app wanderways init-db")
@@ -115,6 +116,14 @@ def main():
 
     save(args.output, lines)
     return 0 if ok else 1
+
+
+def shown_path(path):
+    """Path relative to the repository, so saved reports never reveal the local home folder."""
+    try:
+        return path.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def save(path, lines):

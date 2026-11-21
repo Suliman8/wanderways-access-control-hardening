@@ -1,126 +1,161 @@
-# Mapping WanderWays traffic with an intercepting proxy
+# Mapping WanderWays traffic with a proxy (Burp Suite)
 
-Task 1, step 3: *"Use a proxy tool to map all traffic and identify hidden API endpoints."*
+Task 1, step 3 says: *"Use a proxy tool to map all traffic and identify hidden API endpoints."*
 
-The proxy shows what the application **does** while people use it. Hidden endpoints never show up in
-that traffic. They are found afterwards from clues in the proxy (robots.txt, JavaScript, `Allow`
-headers) and by active discovery. This page covers both parts.
+## What a proxy does
+
+Normally your browser talks straight to the website. A **proxy** such as Burp Suite sits **in the
+middle** and writes down every request that passes through it:
+
+```
+  browser / script  ──────►  Burp Suite  ──────►  WanderWays app
+                             127.0.0.1:8081       127.0.0.1:5000
+                             (records every request)
+```
+
+When you click around the site, Burp builds a list of every URL the site uses: `/api/bookings`,
+`/api/admin/users` and so on. That list is the **map of the API**.
+
+There is one catch, and it is the main lesson of Task 1. Burp only records URLs that the website
+**actually calls**. Hidden endpoints (no page uses them) never pass through Burp, so they must be found
+with extra techniques ([part C](#c-finding-the-hidden-endpoints)).
 
 ---
 
-## A. Burp Suite Community
+## A. Burp Suite: do it yourself (about 10 minutes)
 
-### 1. Start the lab
+### Step 1: Start the app
+
+Terminal 1:
 
 ```bash
+cd ~/Desktop/Eztech/wanderways-access-control-hardening
 source .venv/bin/activate
-flask --app wanderways init-db      # fresh data
-flask --app wanderways run          # http://127.0.0.1:5000
+flask --app wanderways init-db
+flask --app wanderways run
 ```
 
-### 2. Start Burp and set the listener
+Leave this terminal open. The app is now at http://127.0.0.1:5000.
 
-1. Open Burp Suite Community → **Temporary project** → **Use Burp defaults** → **Start Burp**.
-2. **Proxy → Proxy settings → Proxy listeners.** The default is `127.0.0.1:8080`.
-   On the test machine port 8080 was already used by another service, so the listener was edited to
-   **`127.0.0.1:8081`**. Use any free port and use the same port below.
-3. **Proxy → Intercept**: make sure **Intercept is off**. Otherwise every request waits for you.
+### Step 2: Open Burp
 
-### 3. Set the scope
+Open **Burp Suite Community** from the menu (or type `burpsuite` in a terminal).
+Click **Temporary project** → **Next** → **Use Burp defaults** → **Start Burp**.
 
-**Target → Scope settings → Include in scope → Add** → `http://127.0.0.1:5000`.
-In **Target → Site map**, click the filter bar and tick **Show only in-scope items**.
+### Step 3: Change Burp's port from 8080 to 8081
 
-### 4. Generate traffic as every role
+Burp normally listens on port 8080, but on this computer another program already uses 8080. If Burp
+shows *"Failed to start proxy service on 127.0.0.1:8080"*, that is the reason.
 
-Option 1, by hand: **Proxy → Intercept → Open browser** (Burp's built-in Chromium already sends
-traffic to 127.0.0.1 through Burp). Then, for each account in the README:
+1. Click the **Proxy** tab, then the **Proxy settings** button (top right).
+2. Under **Proxy listeners**, click the `127.0.0.1:8080` row → **Edit**.
+3. Change **Bind to port** to `8081` → **OK**.
+4. Make sure the **Running** box on that row is ticked. Close the settings window.
 
-| Account | Click through |
-|---|---|
-| not logged in | `/`, the login page, one wrong password |
-| `ayesha` (customer) | Bookings → open a booking → *Save changes* → *Cancel booking* → New booking → submit → Profile → *Save profile* → Log out |
-| `sara.agent` (agent) | Bookings → open a booking → Profile → Log out |
-| `admin` | Bookings → open a booking → Profile → Admin → *Export bookings (CSV)* → Log out |
+### Step 4: Turn "Intercept" off
 
-Option 2, scripted: replay the same journeys through Burp:
+**Proxy** tab → **Intercept**. The button must show **Intercept off**.
+(When intercept is on, every request stops and waits for you to press *Forward*. We only want to record.)
+
+### Step 5: Send traffic through Burp
+
+**Easiest: one command.** Open terminal 2:
 
 ```bash
-python scripts/generate_traffic.py --proxy http://127.0.0.1:8081 --with-writes
-flask --app wanderways init-db      # remove the test booking afterwards
+cd ~/Desktop/Eztech/wanderways-access-control-hardening
+source .venv/bin/activate
+python scripts/generate_traffic.py --proxy http://127.0.0.1:8081
 ```
 
-### 5. Read the map
+The script acts like a person: it logs in as the customer, the agent and the admin and opens every
+page, all through Burp. It only reads data, so nothing needs resetting afterwards.
 
-* **Target → Site map** → expand `http://127.0.0.1:5000`. This gives the endpoint tree the UI uses.
-* **Proxy → HTTP history** shows every request with method, status and length. Sort by URL to group them.
-* Click `GET /static/js/app.js` → **Response** and search for `/api`. Every `fetch()` path is there,
-  plus a developer comment: *"the old mobile app still reads /api/v1/bookings"*. That is a hidden endpoint.
-* Open `GET /robots.txt`: `Disallow: /admin` and `Disallow: /api/internal/`. Two more leads.
+**Or by hand:** **Proxy** → **Intercept** → **Open browser**. In that browser go to
+http://127.0.0.1:5000 and:
 
-### 6. Confirm hidden endpoints and methods
+| Log in as | Then click |
+|---|---|
+| `ayesha` / `Customer@2026` | Bookings → open a booking → New booking → Profile → Log out |
+| `sara.agent` / `Agent@2026` | Bookings → open a booking → Profile → Log out |
+| `admin` / `Admin@2026` | Bookings → open a booking → Profile → Admin → Export bookings → Log out |
 
-* **Repeater:** right-click any request → *Send to Repeater*. Change the path to `/api/v1/bookings`,
-  then to `/api/internal/` + a guess. Change the method to `OPTIONS`: the `Allow` response header lists
-  the methods the server accepts. This is how `DELETE /api/bookings/{id}` was found.
-* **Intruder** works for wordlist fuzzing, but Burp Community slows it down on purpose. For the full
-  wordlist use ffuf or the project script instead (part C).
+### Step 6: Look at the map
 
-### 7. Save evidence
+Click the **Target** tab → **Site map** → click the small arrow next to `http://127.0.0.1:5000`.
+Open the folders (`api`, `admin`, `bookings`, …). You now see every URL the site used, with its
+method (GET, POST, …).
+The **Proxy → HTTP history** tab shows the same requests as a list, in the order they happened.
 
-* Take a screenshot of the expanded **Site map** and save it as `docs/evidence/screenshots/burp_sitemap.png`.
-* Optional: in **HTTP history** select all rows → right-click → **Save items** (XML file).
+### Step 7: Save a screenshot as evidence
+
+With the folders open, take a screenshot (PrtSc key, or the Kali *Screenshot* app). Save it as
+`docs/evidence/screenshots/burp_sitemap.png`, then in terminal 2:
+
+```bash
+git add docs/evidence/screenshots/burp_sitemap.png
+git commit -m "Add Burp Suite site map screenshot"
+git push
+```
+
+### Optional: two Burp tricks used in the enumeration
+
+* **Find hidden clues in the JavaScript:** in the Site map click `app.js` → **Response** tab →
+  search for `/api`. You will find a developer comment mentioning `/api/v1/bookings`, a hidden endpoint.
+* **See which methods a URL accepts:** right-click a request → **Send to Repeater**. In Repeater
+  change the first word (`GET`) to `OPTIONS` and click **Send**. The `Allow` header in the answer
+  lists the methods. This is how `DELETE /api/bookings/{id}` was found.
 
 ---
 
-## B. mitmproxy (how the committed capture was made)
+## B. How the saved capture in this repo was made (mitmproxy)
 
-The capture in `docs/evidence/proxy/` was recorded headless with mitmproxy 11.1.2, which is a
-command-line intercepting proxy. It covers the same journeys as part A, so the result does not depend
-on screenshots:
+Burp is a desktop window that has to be clicked by hand. The capture saved in `docs/evidence/proxy/`
+was made with **mitmproxy**, a proxy that runs in the terminal and does the same job (it sits in the
+middle and records). The same user journeys went through it:
 
 ```bash
-# terminal 1 - proxy on 127.0.0.1:8081, save flows + a HAR file
+# terminal 1 - proxy on 127.0.0.1:8081, saving everything it sees
 mitmdump --listen-host 127.0.0.1 -p 8081 \
   -w docs/evidence/proxy/wanderways_capture.mitm \
   --set hardump=docs/evidence/proxy/wanderways_capture.har
 
-# terminal 2 - every role's journey through the proxy (76 requests)
+# terminal 2 - every role's journey through the proxy (76 requests, including POST/PUT/PATCH)
 python scripts/generate_traffic.py --proxy http://127.0.0.1:8081 --with-writes \
   > docs/evidence/proxy/traffic_generator_output.txt
 
-# stop mitmdump with Ctrl+C (writes the HAR), then build the readable views
+# stop mitmdump with Ctrl+C, then turn the capture into readable files
 python recon/har_sitemap.py docs/evidence/proxy/wanderways_capture.har --out docs/evidence/proxy
-flask --app wanderways init-db
+flask --app wanderways init-db     # --with-writes added a test booking; this removes it
 ```
 
 | File | What it is |
 |---|---|
-| `proxy_sitemap.txt` | site-map tree with methods, status codes and hit counts (like Burp's Site map) |
-| `proxy_history.txt` | every request in order (like Burp's HTTP history) |
-| `wanderways_capture.har` | full requests and responses. Open in Chrome/Firefox DevTools → Network → Import |
-| `wanderways_capture.mitm` | the same flows for mitmproxy: `mitmweb -r wanderways_capture.mitm` |
+| `proxy_sitemap.txt` | the URL tree, like Burp's *Site map* |
+| `proxy_history.txt` | every request in order, like Burp's *HTTP history* |
+| `wanderways_capture.har` | full requests and responses (open in Chrome/Firefox DevTools → Network → Import) |
+| `wanderways_capture.mitm` | the same capture for mitmproxy (`mitmweb -r wanderways_capture.mitm`) |
 
 ---
 
-## C. Active discovery (after the proxy)
+## C. Finding the hidden endpoints
 
 ```bash
 python recon/enumerate_endpoints.py --routes docs/evidence/flask_routes.txt --out docs/evidence
 ```
 
-The script repeats the clues from the proxy automatically (robots.txt, crawl as every role,
-JavaScript strings and comments). It then fuzzes the wordlist under every folder found so far, probes
-`<collection>/1` for item routes, and reads the `Allow` header of every path. Finally it sends a GET as
-every role to build an access matrix. Only GET, HEAD and OPTIONS are used.
+This script starts from the same clues Burp shows (robots.txt, links, JavaScript). It then guesses
+common names under every folder found so far (a wordlist, like ffuf), tries `<list>/1` to find
+single-item URLs, and asks every URL for its allowed methods with `OPTIONS`. It only reads, never
+changes data, and refuses any target that is not your own computer.
 
 ## What the proxy saw vs. what exists
 
 | | Paths |
 |---|---|
 | Seen in proxy traffic | 18 |
-| Found only by active discovery | 7 (`/health`, `/robots.txt`, `/logout`, `/api/auth/me`, `/api/internal/debug`, `/api/v1/bookings`, `/api/v1/bookings/{id}`) |
+| Found only by the extra techniques | 7 (`/health`, `/robots.txt`, `/logout`, `/api/auth/me`, `/api/internal/debug`, `/api/v1/bookings`, `/api/v1/bookings/{id}`) |
 | **Total (= `flask routes`)** | **25** |
 
-Passive proxying alone would have missed 28% of the attack surface, including the two most serious
-leads (the unauthenticated v1 API and the debug endpoint). Full results: [`api_endpoints.txt`](api_endpoints.txt).
+Using only the proxy would have missed 28% of the endpoints, including the two most serious ones
+(the v1 API that needs no login, and the debug page that leaks the secret key).
+Full results: [`api_endpoints.txt`](api_endpoints.txt).
