@@ -1,0 +1,8 @@
+# Web application
+Flask==3.1.3
+
+# Recon / traffic scripts (scripts/, recon/)
+requests==2.34.2
+
+# Setup smoke tests (tests/)
+pytest==9.2.0

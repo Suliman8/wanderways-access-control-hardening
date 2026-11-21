@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}New booking{% endblock %}
+{% block page %}bookingNew{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>New booking</h1>
+  <form id="booking-new-form" class="grid-form">
+    <label class="wide">Destination <select name="destination" id="destination" required></select></label>
+    <label class="wide">Hotel <select name="hotel" id="hotel"></select></label>
+    <label>Departure <input type="date" name="depart_date" required></label>
+    <label>Return <input type="date" name="return_date" required></label>
+    <label>Travellers <input type="number" name="travellers" min="1" max="9" value="1" required></label>
+    <label>Preferred agent <select name="agent_id" id="agent"><option value="">No preference</option></select></label>
+    <label class="wide">Notes <input name="notes" maxlength="200"></label>
+    <div class="actions wide"><button type="submit">Request booking</button></div>
+  </form>
+</section>
+{% endblock %}

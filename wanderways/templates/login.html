@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block page %}login{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>Sign in</h1>
+  <p class="muted">Use one of the demo accounts listed in the project README.</p>
+  {% for message in get_flashed_messages() %}
+  <div class="message error">{{ message }}</div>
+  {% endfor %}
+  <form id="login-form" method="post" action="{{ url_for('auth.login', next=request.args.get('next', '')) }}">
+    <label>Username <input name="username" autocomplete="username" required autofocus></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <button type="submit">Sign in</button>
+  </form>
+</section>
+{% endblock %}

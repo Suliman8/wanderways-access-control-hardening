@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Bookings{% endblock %}
+{% block page %}dashboard{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="card-head">
+    <h1>
+      {% if g.user['role'] == 'admin' %}All bookings{% elif g.user['role'] == 'agent' %}Bookings assigned to me{% else %}My bookings{% endif %}
+    </h1>
+    <span id="booking-count" class="muted"></span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Ref</th><th>Customer</th><th>Destination</th><th>Dates</th><th>Travellers</th><th>Total</th><th>Status</th></tr>
+      </thead>
+      <tbody id="bookings-body"><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

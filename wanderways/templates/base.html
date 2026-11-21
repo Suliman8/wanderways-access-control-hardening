@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}WanderWays{% endblock %} · WanderWays Travel</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-page="{% block page %}{% endblock %}" data-user-id="{{ g.user['id'] if g.user else '' }}"{% block body_attrs %}{% endblock %}>
+  <div class="lab-banner">Training lab · intentionally vulnerable · run on 127.0.0.1 only</div>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('views.index') }}">Wander<span>Ways</span> <small>Travel</small></a>
+    {% if g.user %}
+    <nav>
+      <a href="{{ url_for('views.dashboard') }}">Bookings</a>
+      {% if g.user['role'] == 'customer' %}<a href="{{ url_for('views.new_booking') }}">New booking</a>{% endif %}
+      <a href="{{ url_for('views.profile') }}">Profile</a>
+      {% if g.user['role'] == 'admin' %}<a href="{{ url_for('views.admin') }}">Admin</a>{% endif %}
+      <span class="who">{{ g.user['full_name'] }} <span class="role role-{{ g.user['role'] }}">{{ g.user['role'] }}</span></span>
+      <a id="logout-link" class="logout" href="{{ url_for('auth.logout') }}">Log out</a>
+    </nav>
+    {% endif %}
+  </header>
+  <main class="container">
+    <div id="page-message" class="message" hidden></div>
+    {% block content %}{% endblock %}
+  </main>
+  <footer>WanderWays Travel · internal booking prototype · Ezitech</footer>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

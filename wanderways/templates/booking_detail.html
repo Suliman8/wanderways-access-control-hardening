@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Booking {{ booking_id }}{% endblock %}
+{% block page %}bookingDetail{% endblock %}
+{% block body_attrs %} data-booking-id="{{ booking_id }}"{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('views.dashboard') }}">&larr; Back to bookings</a></p>
+<section class="card">
+  <div class="card-head">
+    <h1 id="booking-title">Booking</h1>
+    <span id="booking-status"></span>
+  </div>
+  <dl id="booking-details" class="details"></dl>
+</section>
+
+<section class="card">
+  <h2>Change booking</h2>
+  <form id="booking-edit-form" class="grid-form">
+    <label>Departure <input type="date" name="depart_date" required></label>
+    <label>Return <input type="date" name="return_date" required></label>
+    <label>Travellers <input type="number" name="travellers" min="1" max="9" required></label>
+    <label class="wide">Notes <input name="notes" maxlength="200"></label>
+    <div class="actions wide">
+      <button type="submit">Save changes</button>
+      <button type="button" id="cancel-booking" class="danger">Cancel booking</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

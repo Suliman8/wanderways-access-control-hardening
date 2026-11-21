@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block page %}profile{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>My profile</h1>
+  <p class="muted">Username: <strong id="profile-username"></strong> · Role: <strong id="profile-role"></strong></p>
+  <form id="profile-form">
+    <label>Full name <input name="full_name" required></label>
+    <label>Email <input type="email" name="email" required></label>
+    <label>Phone <input name="phone"></label>
+    <button type="submit">Save profile</button>
+  </form>
+</section>
+{% endblock %}

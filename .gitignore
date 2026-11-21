@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Local database (recreate with: flask --app wanderways init-db)
+instance/
+*.db
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,141 @@
+:root {
+  --bg: #f4f6fa;
+  --surface: #ffffff;
+  --text: #1c2433;
+  --muted: #667085;
+  --line: #e3e7ef;
+  --brand: #0f6cbd;
+  --brand-dark: #0b4f8a;
+  --danger: #c0392b;
+  --ok: #1e8e5a;
+  --warn: #b7791f;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+a { color: var(--brand); }
+
+.lab-banner {
+  background: #fff4e5;
+  color: #8a5300;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 4px 16px;
+  border-bottom: 1px solid #f5d9a8;
+}
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand { font-size: 1.3rem; font-weight: 700; color: var(--text); text-decoration: none; }
+.brand span { color: var(--brand); }
+.brand small { font-weight: 500; color: var(--muted); font-size: 0.85rem; }
+
+nav { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+nav a { text-decoration: none; font-weight: 500; }
+nav .who { color: var(--muted); font-size: 0.9rem; }
+
+.role {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.role-admin { background: #fde8e8; color: #9b1c1c; }
+.role-agent { background: #e6f0fb; color: var(--brand-dark); }
+.role-customer { background: #e7f6ee; color: #146c43; }
+
+.container { max-width: 1080px; margin: 24px auto; padding: 0 16px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.card.narrow { max-width: 440px; margin: 40px auto; }
+.card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.card-head h1 { margin: 0; }
+
+h1 { font-size: 1.4rem; margin: 0 0 12px; }
+h2 { font-size: 1.1rem; margin: 0 0 12px; }
+.muted { color: var(--muted); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
+tbody tr:hover { background: #f8fafd; }
+
+.badge { padding: 2px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
+.badge-confirmed { background: #e7f6ee; color: var(--ok); }
+.badge-pending { background: #fdf3e1; color: var(--warn); }
+.badge-cancelled { background: #fde8e8; color: var(--danger); }
+
+form label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 12px; }
+input, select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 9px 10px;
+  font: inherit;
+  border: 1px solid #cfd6e3;
+  border-radius: 8px;
+  background: #fff;
+}
+input:focus, select:focus { outline: 2px solid #b9d6f2; border-color: var(--brand); }
+
+.grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 16px; }
+.grid-form .wide { grid-column: 1 / -1; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+button, .button {
+  display: inline-block;
+  padding: 9px 18px;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+}
+button:hover, .button:hover { background: var(--brand-dark); }
+button.danger { background: var(--danger); }
+
+.details { display: grid; grid-template-columns: max-content 1fr; gap: 6px 24px; margin: 0; }
+.details dt { color: var(--muted); }
+.details dd { margin: 0; font-weight: 500; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 8px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.stat .label { color: var(--muted); font-size: 0.8rem; }
+.stat .value { font-size: 1.4rem; font-weight: 700; }
+
+.message { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; }
+.message.error { background: #fde8e8; color: #9b1c1c; }
+.message.success { background: #e7f6ee; color: #146c43; }
+
+footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 24px 16px 40px; }
