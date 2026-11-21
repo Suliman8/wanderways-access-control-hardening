@@ -13,3 +13,6 @@ instance/
 .vscode/
 .idea/
 .DS_Store
+
+# LibreOffice lock files
+.~lock.*#

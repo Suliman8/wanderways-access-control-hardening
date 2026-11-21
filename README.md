@@ -28,7 +28,7 @@ This repository currently delivers **Task 1 – Lab Setup and Baseline Enumerati
 | Evidence of a successful connection to the local database using a script | [`scripts/db_check.py`](scripts/db_check.py) → output in [`docs/evidence/db_connection_output.txt`](docs/evidence/db_connection_output.txt) |
 | Python virtual environment with Flask | [Step 2–3](#2-create-and-activate-a-virtual-environment), [`requirements.txt`](requirements.txt) |
 | Booking system with Admin, Agent and Customer roles and 20 bookings | [`wanderways/`](wanderways), seed data in [`wanderways/seed.py`](wanderways/seed.py) |
-| Proxy used to map all traffic and find hidden endpoints | [`docs/proxy_mapping.md`](docs/proxy_mapping.md), capture in [`docs/evidence/proxy/`](docs/evidence/proxy) |
+| Proxy used to map all traffic and find hidden endpoints | [`docs/proxy_mapping.md`](docs/proxy_mapping.md), Burp Suite site map [`burp_sitemap.png`](docs/evidence/screenshots/burp_sitemap.png), full capture in [`docs/evidence/proxy/`](docs/evidence/proxy) |
 | App running on localhost:5000 | [`docs/evidence/screenshots/`](docs/evidence/screenshots) |
 
 ---

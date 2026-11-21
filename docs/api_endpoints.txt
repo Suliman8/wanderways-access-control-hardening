@@ -188,4 +188,5 @@
  docs/evidence/flask_routes.txt               `flask routes` (white-box ground truth)
  docs/evidence/db_connection_output.txt       database connection script output
  docs/evidence/screenshots/                   the app running on localhost:5000
+ docs/evidence/screenshots/burp_sitemap.png   Burp Suite Community site map of the app's traffic
 ==============================================================================================
