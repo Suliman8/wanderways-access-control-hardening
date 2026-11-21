@@ -12,7 +12,7 @@ from datetime import date
 
 from flask import Blueprint, g, jsonify, request
 
-from .auth import login_required
+from .auth import json_body, login_required
 from .db import get_db
 from .seed import DESTINATIONS
 
@@ -96,7 +96,7 @@ def list_bookings():
 @bp.post("/bookings")
 @login_required
 def create_booking():
-    data = request.get_json(silent=True) or {}
+    data = json_body()
     missing = [f for f in ("destination", "depart_date", "return_date", "travellers") if not data.get(f)]
     if missing:
         return jsonify(error="missing fields", fields=missing), 400
@@ -159,7 +159,7 @@ def get_booking(booking_id):
 def update_booking(booking_id):
     if fetch_booking(booking_id) is None:
         return jsonify(error="booking not found"), 404
-    data = request.get_json(silent=True) or {}
+    data = json_body()
     # LAB-VULN (IDOR + mass assignment): no ownership check, and privileged
     # fields (status, total_price, customer_id, agent_id) are writable by anyone.
     changes = {field: data[field] for field in BOOKING_UPDATABLE if field in data}
@@ -220,7 +220,7 @@ def update_user(user_id):
     db = get_db()
     if db.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone() is None:
         return jsonify(error="user not found"), 404
-    data = request.get_json(silent=True) or {}
+    data = json_body()
     # LAB-VULN (IDOR + privilege escalation): edits any profile and accepts
     # "role", so a customer can promote themselves to admin.
     changes = {field: data[field] for field in USER_UPDATABLE if field in data}

@@ -85,6 +85,11 @@ def test_wrong_password_is_rejected(client):
     assert response.status_code == 401
 
 
+def test_non_object_json_body_is_rejected_cleanly(client):
+    response = client.post("/api/auth/login", json=["admin", "Admin@2026"])
+    assert response.status_code == 401
+
+
 def test_api_requires_login(client):
     assert client.get("/api/bookings").status_code == 401
 

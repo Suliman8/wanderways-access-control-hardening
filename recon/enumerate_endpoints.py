@@ -364,7 +364,7 @@ def build_report(e, elapsed, routes):
         f"Target     : {e.base}",
         f"Run at     : {datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')}",
         f"Requests   : {e.requests} in {elapsed:.1f}s - GET/HEAD/OPTIONS only, no data modified",
-        f"Identities : anonymous, " + ", ".join(f"{r} ({u})" for r, (u, _) in ACCOUNTS.items()),
+        "Identities : anonymous, " + ", ".join(f"{r} ({u})" for r, (u, _) in ACCOUNTS.items()),
         f"Wordlist   : {len(e.words)} words",
         f"robots.txt : disallows {', '.join(e.robots) or '-'}",
         f"JS files   : {', '.join(sorted(e.js_files)) or '-'}",

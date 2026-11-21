@@ -40,6 +40,12 @@ def login_required(view):
     return wrapped
 
 
+def json_body():
+    """The request's JSON object, or {} if the body is missing, invalid or not an object."""
+    data = request.get_json(silent=True)
+    return data if isinstance(data, dict) else {}
+
+
 def public_user(user):
     return {
         "id": user["id"],
@@ -103,7 +109,7 @@ def logout():
 
 @bp.post("/api/auth/login")
 def api_login():
-    data = request.get_json(silent=True) or {}
+    data = json_body()
     user = _check_credentials(str(data.get("username", "")), str(data.get("password", "")))
     if user is None:
         return jsonify(error="invalid username or password"), 401

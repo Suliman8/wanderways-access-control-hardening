@@ -69,7 +69,7 @@ wanderways-access-control-hardening/
 │   ├── api_endpoints.txt        # ENDPOINT LIST (mentor check)
 │   ├── proxy_mapping.md         # Burp Suite step-by-step
 │   └── evidence/                # outputs, proxy capture, screenshots
-├── tests/test_lab_setup.py      # setup smoke tests (13 tests)
+├── tests/test_lab_setup.py      # setup smoke tests (14 tests)
 ├── requirements.txt
 └── pytest.ini
 ```
@@ -149,7 +149,7 @@ Open a second terminal, activate the venv again (step 2), then:
 ```bash
 python scripts/db_check.py        # database connection check -> must end with "RESULT: PASS"
 curl http://127.0.0.1:5000/health # {"status":"ok","service":"wanderways","database":"connected"}
-pytest -q                         # 13 passed
+pytest -q                         # 14 passed
 ```
 
 `db_check.py` opens `instance/wanderways.db` **read-only**. It prints the SQLite version, an integrity
