@@ -1,0 +1,159 @@
+{
+  "target": "http://127.0.0.1:5000",
+  "generated_at": "2026-11-22T03:56:52+05:00",
+  "attacker": "ayesha (customer, id 4)",
+  "victim": "Omar Farooq (id 5)",
+  "findings": [
+    {
+      "id": "WW-AUTH-08",
+      "title": "Unauthenticated access to all bookings (legacy v1 API)",
+      "severity": "High",
+      "status": "VULNERABLE",
+      "detail": "With no login, GET /api/v1/bookings returned 20 bookings; GET /api/v1/bookings/2 returned Omar Farooq's record.",
+      "impact": "A completely unauthenticated attacker can exfiltrate every booking and all PII. The retired mobile endpoint was never removed and has no auth.",
+      "evidence": {
+        "count": 20,
+        "single_status": 200,
+        "status_code": 200
+      }
+    },
+    {
+      "id": "WW-AUTH-09",
+      "title": "Secret-key disclosure enabling admin session forgery",
+      "severity": "Critical",
+      "status": "VULNERABLE",
+      "detail": "/api/internal/debug leaked SECRET_KEY='wanderways-dev-secret'. A session cookie for user id 1 was signed with it and accepted: admin stats returned 200 with no password.",
+      "impact": "Full authentication bypass. With the signing key an attacker forges a valid session for ANY user (including admin) and impersonates them completely. Most severe issue found.",
+      "evidence": {
+        "leaked_secret_key": "wanderways-dev-secret",
+        "forged_payload": {
+          "user_id": 1,
+          "role": "admin"
+        },
+        "admin_stats_status": 200
+      }
+    },
+    {
+      "id": "WW-IDOR-01",
+      "title": "Read any user's booking (horizontal IDOR)",
+      "severity": "High",
+      "status": "VULNERABLE",
+      "detail": "ayesha (owns #1) requested /api/bookings/2 and received Omar Farooq's booking WW-26-1002 with no ownership check.",
+      "impact": "Any authenticated user can read every booking by walking sequential IDs, exposing passport numbers and card last-4 of all customers (mass PII breach).",
+      "evidence": {
+        "victim_booking": "WW-26-1002",
+        "leaked_passport": "ZX6983360",
+        "leaked_card_last4": "6166",
+        "status_code": 200
+      }
+    },
+    {
+      "id": "WW-IDOR-05",
+      "title": "Read any user account incl. password hash (IDOR + data exposure)",
+      "severity": "High",
+      "status": "VULNERABLE",
+      "detail": "ayesha read /api/users/1 and received the admin's full record, including the password_hash and email.",
+      "impact": "Any user can dump every account's email, phone and password hash. The hashes enable offline password cracking; the emails/phones enable phishing.",
+      "evidence": {
+        "target_user": "admin",
+        "leaked_email": "admin@wanderways.test",
+        "password_hash_prefix": "scrypt:32768:8:1$Jj22ZuzrLif...",
+        "status_code": 200
+      }
+    },
+    {
+      "id": "WW-BAC-07",
+      "title": "Admin user directory exposed to non-admins (broken RBAC)",
+      "severity": "High",
+      "status": "VULNERABLE",
+      "detail": "ayesha (customer) read /api/admin/users -> 200 listing 7 accounts, while /api/admin/stats correctly returned 403.",
+      "impact": "The full staff/customer directory (usernames, emails, phones, roles) leaks to any logged-in user. Inconsistent checks show the role guard was forgotten on this route.",
+      "evidence": {
+        "accounts_listed": 7,
+        "users_status": 200,
+        "stats_status": 403
+      }
+    },
+    {
+      "id": "WW-BAC-10",
+      "title": "Authorisation from a client-editable cookie (CSV export)",
+      "severity": "High",
+      "status": "VULNERABLE",
+      "detail": "With ww_role=customer the export returned 403; after editing the cookie to ww_role=admin it returned 200 - a CSV of 20 bookings with passports and cards.",
+      "impact": "Authorisation is decided by an unsigned cookie the client fully controls, so anyone downloads the full booking database (names, emails, passports, card last-4) by editing one cookie value.",
+      "evidence": {
+        "blocked_status": 403,
+        "bypassed_status": 200,
+        "csv_rows": 20,
+        "saved": "docs/evidence/task2/leaked_bookings_export.csv"
+      }
+    },
+    {
+      "id": "WW-MASS-11",
+      "title": "Mass assignment on booking creation (price / owner / status)",
+      "severity": "Medium",
+      "status": "VULNERABLE",
+      "detail": "A created booking honoured client-supplied total_price=0, customer_id=5 and status=confirmed (ref WW-26-1021).",
+      "impact": "Attackers create confirmed, zero-price bookings or plant bookings under another customer's account, bypassing pricing and ownership rules.",
+      "evidence": {
+        "ref": "WW-26-1021",
+        "total_price": 0.0,
+        "owner_id": 5,
+        "status_code": 201
+      }
+    },
+    {
+      "id": "WW-IDOR-02",
+      "title": "Modify / re-price / steal any booking (IDOR + mass assignment)",
+      "severity": "High",
+      "status": "VULNERABLE",
+      "detail": "ayesha changed Omar Farooq's booking WW-26-1006: price $3515.0 -> $0, status -> confirmed, then reassigned its owner to herself.",
+      "impact": "An attacker can alter anyone's trip, zero out the price (payment fraud), confirm unpaid bookings, or reassign ownership. Privileged fields (price, status, owner) are client-writable.",
+      "evidence": {
+        "booking": "WW-26-1006",
+        "price_before": 3515.0,
+        "price_after": 0.0,
+        "owner_after": 4,
+        "status_code": 200
+      }
+    },
+    {
+      "id": "WW-IDOR-03",
+      "title": "Cancel any user's booking (IDOR)",
+      "severity": "Medium",
+      "status": "VULNERABLE",
+      "detail": "ayesha POSTed /api/bookings/10/cancel and the victim's booking was cancelled (status=cancelled).",
+      "impact": "Any user can cancel other customers' trips, causing denial of service and lost revenue.",
+      "evidence": {
+        "booking": "WW-26-1010",
+        "status": "cancelled",
+        "status_code": 200
+      }
+    },
+    {
+      "id": "WW-PRIV-06",
+      "title": "Privilege escalation to admin via self-service PATCH",
+      "severity": "Critical",
+      "status": "VULNERABLE",
+      "detail": "ayesha PATCHed her own profile with role=admin; admin stats went from 403 to 200 with no re-authentication.",
+      "impact": "Complete takeover: any customer promotes themselves to admin in one request and gains every admin capability. The profile endpoint accepts the privileged 'role' field (mass assignment).",
+      "evidence": {
+        "stats_before": 403,
+        "role_after_patch": "admin",
+        "stats_after": 200
+      }
+    },
+    {
+      "id": "WW-BAC-04",
+      "title": "Delete any booking as a non-admin (broken RBAC)",
+      "severity": "High",
+      "status": "VULNERABLE",
+      "detail": "ayesha (customer) sent DELETE /api/bookings/14 -> 200; the record is now gone (re-read returns 404).",
+      "impact": "A low-privilege user can permanently destroy any booking. Destructive admin action with no role check and no recovery.",
+      "evidence": {
+        "delete_status": 200,
+        "reread_status": 404
+      }
+    }
+  ]
+}

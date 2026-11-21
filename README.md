@@ -8,14 +8,40 @@ project **"Access Control Hardening for WanderWays Travel Portal"**. It has thre
 (**Admin, Agent, Customer**) and 20 sample bookings. It also contains insecure direct object references
 (IDOR) and broken role checks, so they can be found, exploited and fixed across the three project tasks.
 
-This repository currently delivers **Task 1 – Lab Setup and Baseline Enumeration**.
+This repository delivers **Task 1 – Lab Setup and Baseline Enumeration** and
+**Task 2 – Exploiting IDOR and Broken Access Control**.
 
 | | |
 |---|---|
 | **Intern** | Suliman – Cyber Security |
 | **Client** | Ezitech |
-| **Task 1** | 20–21 Nov 2026 |
+| **Task 1** | 20–21 Nov 2026 — done |
+| **Task 2** | 22 Nov 2026 — done |
 | **Runs on** | `http://127.0.0.1:5000` |
+
+---
+
+## Task 2 checklist (what the mentor checks)
+
+| Requirement | Where to find it |
+|---|---|
+| PoC showing unauthorised access to another user's booking data | [`docs/findings_task2.md`](docs/findings_task2.md) WW-IDOR-01, and the log below |
+| Log file showing successful IDOR exploitation | [`docs/evidence/task2/exploit_log.txt`](docs/evidence/task2/exploit_log.txt) (full HTTP request/response) |
+| Summary of security impact for each discovered flaw | [`docs/findings_task2.md`](docs/findings_task2.md) and [`docs/evidence/task2/findings_summary.txt`](docs/evidence/task2/findings_summary.txt) |
+| Exploit tooling (reproducible) | [`exploit/exploit_idor.py`](exploit/exploit_idor.py) — 11/11 confirmed vulnerable |
+| Burp Suite / Postman (named in the brief) | [`docs/task2_burp_walkthrough.md`](docs/task2_burp_walkthrough.md), [`exploit/wanderways_idor.postman_collection.json`](exploit/wanderways_idor.postman_collection.json) |
+
+**Task 2 result: 11/11 access-control test cases confirmed vulnerable (2 Critical, 7 High, 2 Medium).**
+Attacker `ayesha` (customer) read, modified, cancelled, stole and deleted other users' bookings, dumped
+all bookings with no login, promoted herself to admin, and forged an admin session from a leaked key.
+Run it:
+
+```bash
+flask --app wanderways init-db      # fresh data
+flask --app wanderways run          # terminal 2
+python exploit/exploit_idor.py      # terminal 3 -> docs/evidence/task2/
+flask --app wanderways init-db      # reset the lab afterwards
+```
 
 ---
 
@@ -61,14 +87,20 @@ wanderways-access-control-hardening/
 ├── scripts/
 │   ├── db_check.py              # proves the database connection (mentor check)
 │   └── generate_traffic.py      # replays every role's journey through a proxy
-├── recon/
+├── recon/                       # Task 1: black-box enumeration
 │   ├── enumerate_endpoints.py   # black-box endpoint + HTTP method discovery
 │   ├── har_sitemap.py           # proxy capture (HAR) -> history + site map
 │   └── wordlist.txt             # 90-word API wordlist
+├── exploit/                     # Task 2: IDOR & broken access control PoC
+│   ├── exploit_idor.py          # runs all 11 findings, writes the evidence
+│   ├── wwclient.py              # HTTP client that logs every request/response
+│   └── wanderways_idor.postman_collection.json
 ├── docs/
-│   ├── api_endpoints.txt        # ENDPOINT LIST (mentor check)
-│   ├── proxy_mapping.md         # Burp Suite step-by-step
-│   └── evidence/                # outputs, proxy capture, screenshots
+│   ├── api_endpoints.txt        # Task 1 ENDPOINT LIST (mentor check)
+│   ├── proxy_mapping.md         # Task 1 Burp Suite step-by-step
+│   ├── findings_task2.md        # Task 2 VULNERABILITY REPORT (mentor check)
+│   ├── task2_burp_walkthrough.md# Task 2 reproduce the IDOR by hand in Burp
+│   └── evidence/                # Task 1 + Task 2 outputs, logs, screenshots
 ├── tests/test_lab_setup.py      # setup smoke tests (14 tests)
 ├── requirements.txt
 └── pytest.ini
@@ -261,9 +293,9 @@ because the UI has no delete button.
 
 | Task | Days | Status |
 |---|---|---|
-| 1. Lab setup and baseline enumeration | 2 | **Done** (this repository) |
-| 2. Exploiting IDOR and broken access control | 2 | Next |
-| 3. Final security report and handover (fixes, automated access-control tests, handover doc) | 1 | Planned |
+| 1. Lab setup and baseline enumeration | 2 | **Done** — `docs/api_endpoints.txt` |
+| 2. Exploiting IDOR and broken access control | 2 | **Done** — `docs/findings_task2.md`, 11/11 vulnerable |
+| 3. Final security report and handover (fixes, automated access-control tests, handover doc) | 1 | Next |
 
 Every intentional weakness is marked with a `LAB-VULN` comment in the code. This keeps the Task 3
 patch set easy to review.
