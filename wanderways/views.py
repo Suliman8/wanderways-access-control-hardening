@@ -8,7 +8,6 @@ bp = Blueprint("views", __name__)
 
 ROBOTS_TXT = """User-agent: *
 Disallow: /admin
-Disallow: /api/internal/
 """
 
 
@@ -43,9 +42,11 @@ def profile():
 
 @bp.get("/admin")
 @login_required
-# LAB-VULN: the menu link is only shown to admins, but the page itself only
-# checks that *someone* is logged in.
 def admin():
+    # Non-admins are redirected away from the admin page (defence in depth; the
+    # admin APIs are admin-only regardless). Only admins see the panel.
+    if g.user["role"] != "admin":
+        return redirect(url_for("views.dashboard"))
     return render_template("admin.html")
 
 

@@ -1,51 +1,60 @@
-# WanderWays Travel Portal – Access Control Lab
+# WanderWays Travel Portal — Access Control Hardening
 
-> **Warning:** this is an **intentionally vulnerable** training app. It has broken access control
-> on purpose. Run it only on your own machine (`127.0.0.1`). Never deploy it or expose it to a network.
-
-WanderWays is a small travel booking prototype built with **Python, Flask and SQLite** for the Ezitech
-project **"Access Control Hardening for WanderWays Travel Portal"**. It has three user roles
-(**Admin, Agent, Customer**) and 20 sample bookings. It also contains insecure direct object references
-(IDOR) and broken role checks, so they can be found, exploited and fixed across the three project tasks.
-
-This repository delivers **Task 1 – Lab Setup and Baseline Enumeration** and
-**Task 2 – Exploiting IDOR and Broken Access Control**.
+A security engagement on a travel-booking app (**Python / Flask / SQLite**, roles: Admin, Agent,
+Customer) for the Ezitech project **"Access Control Hardening for WanderWays Travel Portal"**. The app
+began with insecure direct object references (IDOR) and broken role-based access control; this
+repository **finds, exploits, fixes and verifies** all of them across three tasks.
 
 | | |
 |---|---|
-| **Intern** | Suliman – Cyber Security |
+| **Intern** | Suliman — Cyber Security |
 | **Client** | Ezitech |
-| **Task 1** | 20–21 Nov 2026 — done |
-| **Task 2** | 22 Nov 2026 — done |
-| **Runs on** | `http://127.0.0.1:5000` |
+| **Tasks** | 1 Enumeration · 2 Exploitation · 3 Remediation & handover — **all done** |
+| **Runs on** | `http://127.0.0.1:5000` (local lab) |
+| **Outcome** | **11 access-control flaws found → 11 fixed → 42 automated tests passing (exploit re-run: 0/11)** |
 
----
+> The app is now **hardened**. The exploitable version is preserved at the git tag `task2-vulnerable`
+> for the before/after. It is still a local training lab — run it on `127.0.0.1` only.
 
-## Task 2 checklist (what the mentor checks)
+## Start here
 
-| Requirement | Where to find it |
+| If you want to… | Read |
 |---|---|
-| PoC showing unauthorised access to another user's booking data | [`docs/findings_task2.md`](docs/findings_task2.md) WW-IDOR-01, and the log below |
-| Log file showing successful IDOR exploitation | [`docs/evidence/task2/exploit_log.txt`](docs/evidence/task2/exploit_log.txt) (full HTTP request/response) |
-| Summary of security impact for each discovered flaw | [`docs/findings_task2.md`](docs/findings_task2.md) and [`docs/evidence/task2/findings_summary.txt`](docs/evidence/task2/findings_summary.txt) |
-| Exploit tooling (reproducible) | [`exploit/exploit_idor.py`](exploit/exploit_idor.py) — 11/11 confirmed vulnerable |
-| Burp Suite / Postman (named in the brief) | [`docs/task2_burp_walkthrough.md`](docs/task2_burp_walkthrough.md), [`exploit/wanderways_idor.postman_collection.json`](exploit/wanderways_idor.postman_collection.json) |
+| The full security story (found → exploited → fixed → verified) | **[`docs/SECURITY_REPORT.md`](docs/SECURITY_REPORT.md)** |
+| Maintain the app safely (the authorization middleware, running tests) | **[`docs/HANDOVER.md`](docs/HANDOVER.md)** |
+| How each flaw was exploited (PoC + impact) | [`docs/findings_task2.md`](docs/findings_task2.md) |
+| The endpoint map | [`docs/api_endpoints.txt`](docs/api_endpoints.txt) |
+| Run it yourself | [Local setup](#local-setup) |
 
-**Task 2 result: 11/11 access-control test cases confirmed vulnerable (2 Critical, 7 High, 2 Medium).**
-Attacker `ayesha` (customer) read, modified, cancelled, stole and deleted other users' bookings, dumped
-all bookings with no login, promoted herself to admin, and forged an admin session from a leaked key.
-Run it:
+## The three tasks (mentor deliverables)
+
+**Task 1 — Lab setup & baseline enumeration.** 25 endpoints mapped (5 hidden) in
+[`docs/api_endpoints.txt`](docs/api_endpoints.txt); DB connection proven by
+[`scripts/db_check.py`](scripts/db_check.py); Burp + ffuf traffic mapping in
+[`docs/proxy_mapping.md`](docs/proxy_mapping.md).
+
+**Task 2 — Exploiting IDOR & broken access control.** 11/11 flaws confirmed by live exploitation
+(2 Critical, 7 High, 2 Medium). Reproducible PoC [`exploit/exploit_idor.py`](exploit/exploit_idor.py),
+full HTTP log [`docs/evidence/task2/exploit_log.txt`](docs/evidence/task2/exploit_log.txt), report
+[`docs/findings_task2.md`](docs/findings_task2.md).
+
+**Task 3 — Remediation & handover.** Central authorization middleware
+[`wanderways/authz.py`](wanderways/authz.py); automated access-control test suite
+[`tests/test_access_control.py`](tests/test_access_control.py) (28 tests); final report
+[`docs/SECURITY_REPORT.md`](docs/SECURITY_REPORT.md) and handover
+[`docs/HANDOVER.md`](docs/HANDOVER.md).
 
 ```bash
-flask --app wanderways init-db      # fresh data
-flask --app wanderways run          # terminal 2
-python exploit/exploit_idor.py      # terminal 3 -> docs/evidence/task2/
-flask --app wanderways init-db      # reset the lab afterwards
+# prove it: 42 tests pass, and the original exploit now finds nothing
+python -m pytest -q                                    # 42 passed
+flask --app wanderways init-db && flask --app wanderways run &   # start app
+python exploit/exploit_idor.py                         # 0/11 vulnerable
+flask --app wanderways init-db                         # reset the lab
 ```
 
 ---
 
-## Task 1 checklist (what the mentor checks)
+## Task 1 reference (endpoint enumeration)
 
 | Requirement | Where to find it |
 |---|---|
@@ -78,14 +87,14 @@ wanderways-access-control-hardening/
 │   ├── db.py                    #   SQLite connection + `init-db` command
 │   ├── schema.sql               #   tables: users, bookings
 │   ├── seed.py                  #   7 users in 3 roles + 20 bookings (fixed random seed)
-│   ├── auth.py                  #   login / logout / sessions
+│   ├── auth.py                  #   login / logout / sessions (no client role cookie)
+│   ├── authz.py                 #   ★ Task 3: central authorization middleware
 │   ├── views.py                 #   HTML pages, robots.txt, /health
-│   ├── api.py                   #   booking + user REST API
-│   ├── admin.py                 #   admin API
-│   ├── legacy.py                #   old endpoints that were never removed (hidden)
+│   ├── api.py                   #   booking + user REST API (authorised per object)
+│   ├── admin.py                 #   admin API (admin-only, server-side role)
 │   ├── templates/  static/      #   pages, CSS, front-end JavaScript
 ├── scripts/
-│   ├── db_check.py              # proves the database connection (mentor check)
+│   ├── db_check.py              # proves the database connection (Task 1)
 │   └── generate_traffic.py      # replays every role's journey through a proxy
 ├── recon/                       # Task 1: black-box enumeration
 │   ├── enumerate_endpoints.py   # black-box endpoint + HTTP method discovery
@@ -95,13 +104,17 @@ wanderways-access-control-hardening/
 │   ├── exploit_idor.py          # runs all 11 findings, writes the evidence
 │   ├── wwclient.py              # HTTP client that logs every request/response
 │   └── wanderways_idor.postman_collection.json
+├── tests/
+│   ├── test_lab_setup.py        # setup smoke tests (14)
+│   └── test_access_control.py   # ★ Task 3: access-control test suite (28)
 ├── docs/
-│   ├── api_endpoints.txt        # Task 1 ENDPOINT LIST (mentor check)
+│   ├── SECURITY_REPORT.md       # ★ Task 3 FINAL REPORT (vulnerability lifecycle)
+│   ├── HANDOVER.md              # ★ Task 3 HANDOVER (middleware + running tests)
+│   ├── findings_task2.md        # Task 2 vulnerability report
+│   ├── api_endpoints.txt        # Task 1 endpoint list
 │   ├── proxy_mapping.md         # Task 1 Burp Suite step-by-step
-│   ├── findings_task2.md        # Task 2 VULNERABILITY REPORT (mentor check)
-│   ├── task2_burp_walkthrough.md# Task 2 reproduce the IDOR by hand in Burp
-│   └── evidence/                # Task 1 + Task 2 outputs, logs, screenshots
-├── tests/test_lab_setup.py      # setup smoke tests (14 tests)
+│   ├── task2_burp_walkthrough.md# Task 2 reproduce the IDOR by hand
+│   └── evidence/                # outputs & logs for Tasks 1, 2, 3 (incl. after_fix)
 ├── requirements.txt
 └── pytest.ini
 ```
@@ -220,9 +233,10 @@ The 20 bookings are generated with a fixed random seed (`wanderways/seed.py`), s
 dates are identical on every machine. Each booking stores sensitive fields (passport number,
 card last 4 digits) to make data leaks easy to see.
 
-### Intended access rules
+### Enforced access rules
 
-Task 2 tests these rules and Task 3 enforces them.
+These rules are now enforced centrally in [`wanderways/authz.py`](wanderways/authz.py) and covered by
+`tests/test_access_control.py`.
 
 | Action | Customer | Agent | Admin |
 |---|---|---|---|
@@ -295,12 +309,14 @@ because the UI has no delete button.
 |---|---|---|
 | 1. Lab setup and baseline enumeration | 2 | **Done** — `docs/api_endpoints.txt` |
 | 2. Exploiting IDOR and broken access control | 2 | **Done** — `docs/findings_task2.md`, 11/11 vulnerable |
-| 3. Final security report and handover (fixes, automated access-control tests, handover doc) | 1 | Next |
+| 3. Remediation, test suite, report & handover | 1 | **Done** — `docs/SECURITY_REPORT.md`, 11/11 fixed |
 
-Every intentional weakness is marked with a `LAB-VULN` comment in the code. This keeps the Task 3
-patch set easy to review.
+The exploitable version (before remediation) is preserved at the git tag `task2-vulnerable`:
+`git checkout task2-vulnerable` for the vulnerable app, `git checkout main` for the hardened one.
 
 ## Scope and safety
 
-All testing happened on the author's own machine against this local app. The recon script refuses
-non-localhost targets. The data (names, emails, passport numbers, card digits) is fictional.
+All testing happened on the author's own machine against this local app. The recon and exploit scripts
+refuse non-localhost targets. The data (names, emails, passport numbers, card digits) is fictional. The
+app is now hardened; keep it on `127.0.0.1` and set `WANDERWAYS_SECRET_KEY` before any real deployment
+(see [`docs/HANDOVER.md`](docs/HANDOVER.md)).

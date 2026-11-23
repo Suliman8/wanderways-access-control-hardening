@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body data-page="{% block page %}{% endblock %}" data-user-id="{{ g.user['id'] if g.user else '' }}"{% block body_attrs %}{% endblock %}>
-  <div class="lab-banner">Training lab · intentionally vulnerable · run on 127.0.0.1 only</div>
+  <div class="lab-banner">Training lab · access control hardened (Task 3) · run on 127.0.0.1 only</div>
   <header class="topbar">
     <a class="brand" href="{{ url_for('views.index') }}">Wander<span>Ways</span> <small>Travel</small></a>
     {% if g.user %}

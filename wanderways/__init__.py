@@ -1,14 +1,15 @@
-"""WanderWays Travel Portal - an intentionally vulnerable booking prototype.
+"""WanderWays Travel Portal - a travel booking prototype (Ezitech lab).
 
-This app is the training target for the Ezitech "Access Control Hardening"
-project. It contains insecure direct object references (IDOR) and broken
-role-based access control on purpose, so they can be mapped (Task 1),
-exploited (Task 2) and fixed (Task 3). Every weakness is marked in the code
-with a ``LAB-VULN`` comment.
+This app began as an intentionally vulnerable training target. Task 3 applied
+the remediation patch set, so access control is now enforced centrally in
+wanderways/authz.py. The exploitable version is preserved at the git tag
+``task2-vulnerable`` for reference; docs/SECURITY_REPORT.md has the before/after.
 
-Only run it on 127.0.0.1. Never deploy it.
+Still a local lab: run it on 127.0.0.1. Set WANDERWAYS_SECRET_KEY before any
+real deployment.
 """
 import os
+import secrets
 
 from flask import Flask, jsonify, request
 
@@ -18,8 +19,9 @@ from . import db
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        # LAB-VULN: hard-coded, guessable signing key (also leaked by /api/internal/debug).
-        SECRET_KEY="wanderways-dev-secret",
+        # Signing key comes from the environment. If unset (local dev) a fresh
+        # random key is generated per process - never a hard-coded, guessable value.
+        SECRET_KEY=os.environ.get("WANDERWAYS_SECRET_KEY") or secrets.token_hex(32),
         DATABASE=os.path.join(app.instance_path, "wanderways.db"),
     )
     if test_config:
@@ -30,13 +32,12 @@ def create_app(test_config=None):
 
     db.init_app(app)
 
-    from . import admin, api, auth, legacy, views
+    from . import admin, api, auth, views
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(views.bp)
     app.register_blueprint(api.bp)
     app.register_blueprint(admin.bp)
-    app.register_blueprint(legacy.bp)
 
     _register_error_handlers(app)
 

@@ -1,0 +1,94 @@
+============================================================================================
+ WanderWays Task 2 - IDOR & Broken Access Control: findings summary
+============================================================================================
+ Generated : 2026-11-23 21:03:40 PKT
+ Target    : http://127.0.0.1:5000  (local lab, authorised testing on own machine)
+ Attacker  : ayesha (customer, id 4)   Victim: Omar Farooq (id 5)
+ Result    : 0/11 test cases confirmed VULNERABLE  (Critical 0, High 0, Medium 0)
+============================================================================================
+
+ SEVERITY  ID           STATUS       TITLE
+ -----------------------------------------------------------------------------------------
+ Critical  WW-AUTH-09   not vulnerable Secret-key disclosure enabling admin session forgery
+ Critical  WW-PRIV-06   not vulnerable Privilege escalation to admin via self-service PATCH
+ High      WW-AUTH-08   not vulnerable Unauthenticated access to all bookings (legacy v1 API)
+ High      WW-BAC-04    not vulnerable Delete any booking as a non-admin (broken RBAC)
+ High      WW-BAC-07    not vulnerable Admin user directory exposed to non-admins (broken RBAC)
+ High      WW-BAC-10    not vulnerable Authorisation from a client-editable cookie (CSV export)
+ High      WW-IDOR-01   not vulnerable Read any user's booking (horizontal IDOR)
+ High      WW-IDOR-02   not vulnerable Modify / re-price / steal any booking (IDOR + mass assignment)
+ High      WW-IDOR-05   not vulnerable Read any user account incl. password hash (IDOR + data exposure)
+ Medium    WW-IDOR-03   not vulnerable Cancel any user's booking (IDOR)
+ Medium    WW-MASS-11   not vulnerable Mass assignment on booking creation (price / owner / status)
+
+============================================================================================
+ DETAIL PER FINDING
+============================================================================================
+
+ [Critical] WW-AUTH-09 - Secret-key disclosure enabling admin session forgery   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : /api/internal/debug returned 404; no secret_key was exposed, so no session could be forged.
+   Security impact: Not exploitable: the debug endpoint is gone and the signing key is not disclosed.
+   Evidence      : {"debug_status": 404}
+
+ [Critical] WW-PRIV-06 - Privilege escalation to admin via self-service PATCH   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : ayesha PATCHed her own profile with role=admin; admin stats went from 403 to 403 with no re-authentication.
+   Security impact: Complete takeover: any customer promotes themselves to admin in one request and gains every admin capability. The profile endpoint accepts the privileged 'role' field (mass assignment).
+   Evidence      : {"stats_before": 403, "role_after_patch": null, "stats_after": 403}
+
+ [High] WW-AUTH-08 - Unauthenticated access to all bookings (legacy v1 API)   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : With no login, GET /api/v1/bookings returned None bookings; GET /api/v1/bookings/2 returned Omar Farooq's record.
+   Security impact: A completely unauthenticated attacker can exfiltrate every booking and all PII. The retired mobile endpoint was never removed and has no auth.
+   Evidence      : {"count": null, "single_status": 404, "status_code": 404}
+
+ [High] WW-BAC-04 - Delete any booking as a non-admin (broken RBAC)   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : ayesha (customer) sent DELETE /api/bookings/14 -> 403; the record is now gone (re-read returns 403).
+   Security impact: A low-privilege user can permanently destroy any booking. Destructive admin action with no role check and no recovery.
+   Evidence      : {"delete_status": 403, "reread_status": 403}
+
+ [High] WW-BAC-07 - Admin user directory exposed to non-admins (broken RBAC)   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : ayesha (customer) read /api/admin/users -> 403 listing None accounts, while /api/admin/stats correctly returned 403.
+   Security impact: The full staff/customer directory (usernames, emails, phones, roles) leaks to any logged-in user. Inconsistent checks show the role guard was forgotten on this route.
+   Evidence      : {"accounts_listed": null, "users_status": 403, "stats_status": 403}
+
+ [High] WW-BAC-10 - Authorisation from a client-editable cookie (CSV export)   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : With ww_role=customer the export returned 403; after editing the cookie to ww_role=admin it returned 403 - a CSV of 0 bookings with passports and cards.
+   Security impact: Authorisation is decided by an unsigned cookie the client fully controls, so anyone downloads the full booking database (names, emails, passports, card last-4) by editing one cookie value.
+   Evidence      : {"blocked_status": 403, "bypassed_status": 403, "csv_rows": 0, "saved": null}
+
+ [High] WW-IDOR-01 - Read any user's booking (horizontal IDOR)   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : ayesha (owns #1) requested /api/bookings/2 and received Omar Farooq's booking None with no ownership check.
+   Security impact: Any authenticated user can read every booking by walking sequential IDs, exposing passport numbers and card last-4 of all customers (mass PII breach).
+   Evidence      : {"victim_booking": null, "leaked_passport": null, "leaked_card_last4": null, "status_code": 403}
+
+ [High] WW-IDOR-02 - Modify / re-price / steal any booking (IDOR + mass assignment)   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : ayesha changed Omar Farooq's booking None: price $None -> $0, status -> confirmed, then reassigned its owner to herself.
+   Security impact: An attacker can alter anyone's trip, zero out the price (payment fraud), confirm unpaid bookings, or reassign ownership. Privileged fields (price, status, owner) are client-writable.
+   Evidence      : {"booking": null, "price_before": null, "price_after": null, "owner_after": null, "status_code": 403}
+
+ [High] WW-IDOR-05 - Read any user account incl. password hash (IDOR + data exposure)   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : ayesha read /api/users/1 and received the admin's full record, including the password_hash and email.
+   Security impact: Any user can dump every account's email, phone and password hash. The hashes enable offline password cracking; the emails/phones enable phishing.
+   Evidence      : {"target_user": null, "leaked_email": null, "password_hash_prefix": "None...", "status_code": 403}
+
+ [Medium] WW-IDOR-03 - Cancel any user's booking (IDOR)   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : ayesha POSTed /api/bookings/10/cancel and the victim's booking was cancelled (status=None).
+   Security impact: Any user can cancel other customers' trips, causing denial of service and lost revenue.
+   Evidence      : {"booking": null, "status": null, "status_code": 403}
+
+ [Medium] WW-MASS-11 - Mass assignment on booking creation (price / owner / status)   (not vulnerable)
+ -----------------------------------------------------------------------------------------
+   What was done : A created booking honoured client-supplied total_price=0, customer_id=5 and status=confirmed (ref WW-26-1021).
+   Security impact: Attackers create confirmed, zero-price bookings or plant bookings under another customer's account, bypassing pricing and ownership rules.
+   Evidence      : {"ref": "WW-26-1021", "total_price": 1300.0, "owner_id": 4, "status_code": 201}
+
+Full HTTP request/response log: docs/evidence/task2/exploit_log.txt

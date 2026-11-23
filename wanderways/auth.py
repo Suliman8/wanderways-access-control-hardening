@@ -1,8 +1,9 @@
 """Login, logout and the login_required decorator.
 
-Sessions use Flask's signed session cookie. At login the app also sets a
-plain, unsigned ``ww_role`` cookie that the UI reads to decide which menu
-items to show.
+Sessions use Flask's signed session cookie only. The role is read from the
+server-side session user (g.user), never from a client-supplied cookie — the
+old unsigned ``ww_role`` cookie was removed in Task 3 (it let the CSV export
+be forged). The UI decides which menu items to show from g.user as well.
 """
 import functools
 
@@ -12,8 +13,6 @@ from werkzeug.security import check_password_hash
 from .db import get_db
 
 bp = Blueprint("auth", __name__)
-
-ROLE_COOKIE = "ww_role"
 
 
 @bp.before_app_request
@@ -64,18 +63,16 @@ def _check_credentials(username, password):
 
 
 def _open_session(response, user):
+    # Only the signed Flask session cookie is set; the role is never stored in a
+    # client-readable/editable cookie. Authorisation always reads g.user.
     session.clear()
     session["user_id"] = user["id"]
     session["role"] = user["role"]
-    # LAB-VULN: unsigned, client-editable role cookie. Fine for showing menus,
-    # but /api/admin/bookings/export trusts it for authorisation.
-    response.set_cookie(ROLE_COOKIE, user["role"], samesite="Lax")
     return response
 
 
 def _close_session(response):
     session.clear()
-    response.delete_cookie(ROLE_COOKIE)
     return response
 
 

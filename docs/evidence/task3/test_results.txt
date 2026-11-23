@@ -1,0 +1,56 @@
+WanderWays - Automated Access Control Test Suite results
+Generated: 2026-11-23 21:03:54 PKT
+Command: python -m pytest -v
+========================================================================
+
+============================= test session starts ==============================
+platform linux -- Python 3.13.12, pytest-9.2.0, pluggy-1.7.0 -- ./.venv/bin/python
+cachedir: .pytest_cache
+rootdir: .
+configfile: pytest.ini
+collecting ... collected 42 items
+
+tests/test_access_control.py::test_idor01_customer_cannot_read_another_users_booking PASSED [  2%]
+tests/test_access_control.py::test_idor01_customer_can_still_read_their_own_booking PASSED [  4%]
+tests/test_access_control.py::test_idor01_admin_can_read_any_booking PASSED [  7%]
+tests/test_access_control.py::test_idor02_customer_cannot_modify_another_users_booking PASSED [  9%]
+tests/test_access_control.py::test_idor02_price_and_owner_are_not_client_settable_on_own_booking PASSED [ 11%]
+tests/test_access_control.py::test_idor03_customer_cannot_cancel_another_users_booking PASSED [ 14%]
+tests/test_access_control.py::test_idor03_customer_can_cancel_their_own_booking PASSED [ 16%]
+tests/test_access_control.py::test_bac04_customer_cannot_delete_a_booking PASSED [ 19%]
+tests/test_access_control.py::test_bac04_agent_cannot_delete_a_booking PASSED [ 21%]
+tests/test_access_control.py::test_bac04_admin_can_delete_a_booking PASSED [ 23%]
+tests/test_access_control.py::test_idor05_customer_cannot_read_another_user PASSED [ 26%]
+tests/test_access_control.py::test_idor05_password_hash_is_never_returned PASSED [ 28%]
+tests/test_access_control.py::test_priv06_customer_cannot_make_themselves_admin PASSED [ 30%]
+tests/test_access_control.py::test_priv06_admin_can_change_a_role PASSED [ 33%]
+tests/test_access_control.py::test_bac07_non_admin_cannot_list_users[ayesha] PASSED [ 35%]
+tests/test_access_control.py::test_bac07_non_admin_cannot_list_users[agent] PASSED [ 38%]
+tests/test_access_control.py::test_bac07_admin_can_list_users PASSED     [ 40%]
+tests/test_access_control.py::test_auth08_legacy_api_is_removed[/api/v1/bookings] PASSED [ 42%]
+tests/test_access_control.py::test_auth08_legacy_api_is_removed[/api/v1/bookings/2] PASSED [ 45%]
+tests/test_access_control.py::test_auth09_debug_endpoint_is_removed PASSED [ 47%]
+tests/test_access_control.py::test_bac10_export_ignores_the_ww_role_cookie PASSED [ 50%]
+tests/test_access_control.py::test_bac10_admin_can_export PASSED         [ 52%]
+tests/test_access_control.py::test_mass11_create_ignores_privileged_fields PASSED [ 54%]
+tests/test_access_control.py::test_list_bookings_ignores_customer_id_override PASSED [ 57%]
+tests/test_access_control.py::test_protected_routes_require_login[get-/api/bookings] PASSED [ 59%]
+tests/test_access_control.py::test_protected_routes_require_login[get-/api/bookings/2] PASSED [ 61%]
+tests/test_access_control.py::test_protected_routes_require_login[get-/api/users/4] PASSED [ 64%]
+tests/test_access_control.py::test_protected_routes_require_login[get-/api/admin/users] PASSED [ 66%]
+tests/test_lab_setup.py::test_database_is_seeded_with_three_roles_and_20_bookings PASSED [ 69%]
+tests/test_lab_setup.py::test_every_booking_belongs_to_a_customer_and_an_agent PASSED [ 71%]
+tests/test_lab_setup.py::test_seed_data_is_deterministic PASSED          [ 73%]
+tests/test_lab_setup.py::test_init_db_cli_resets_the_data PASSED         [ 76%]
+tests/test_lab_setup.py::test_health_endpoint_reports_database_connected PASSED [ 78%]
+tests/test_lab_setup.py::test_each_role_can_log_in[admin] PASSED         [ 80%]
+tests/test_lab_setup.py::test_each_role_can_log_in[agent] PASSED         [ 83%]
+tests/test_lab_setup.py::test_each_role_can_log_in[customer] PASSED      [ 85%]
+tests/test_lab_setup.py::test_wrong_password_is_rejected PASSED          [ 88%]
+tests/test_lab_setup.py::test_non_object_json_body_is_rejected_cleanly PASSED [ 90%]
+tests/test_lab_setup.py::test_api_requires_login PASSED                  [ 92%]
+tests/test_lab_setup.py::test_pages_redirect_to_login_when_anonymous PASSED [ 95%]
+tests/test_lab_setup.py::test_customer_dashboard_lists_only_their_five_bookings PASSED [ 97%]
+tests/test_lab_setup.py::test_options_reports_allowed_methods PASSED     [100%]
+
+============================= 42 passed in 34.56s ==============================
